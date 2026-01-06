@@ -1,0 +1,215 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdn.plyr.io/3.6.3/plyr.css">
+    <script type="application/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/1.11.1/jquery.min.js" integrity="sha512-nhY06wKras39lb9lRO76J4397CH1XpRSLfLJSftTeo3+q2vP7PaebILH9TqH+GRpnOhfAGjuYMVmVTOZJ+682w==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdn.plyr.io/3.6.3/plyr.js"></script>
+    <style>
+        .plyr--video {
+            max-height: 100vh;
+        }
+    </style>
+    <script>
+        resizePlayerScreen = function () {
+            $(".plyr__video-embed").css("padding-bottom", ((window.innerHeight / window.innerWidth) * 100) + "%");
+        }
+        $(document).ready(function () {
+            resizePlayerScreen();
+        });
+        setInterval(function () {
+            resizePlayerScreen();
+        }, 100);
+        $(window).on("resize", function () {
+            resizePlayerScreen();
+        });
+    </script>
+</head>
+<body style="background: black;max-height:100vh;margin:0px;">
+    <div style="width: 100%;" class="videoContainer_iframe" id="player">
+        <iframe src=""
+                allowfullscreen
+                allowtransparency
+                allow="autoplay" style='max-height:100vh;'>
+        </iframe>
+    </div>
+    <script>
+        var getUrlParameter = function getUrlParameter(sParam) {
+            var sPageURL = decodeURIComponent(window.location.search.substring(1)),
+                sURLVariables = sPageURL.split('&'),
+                sParameterName,
+                i;
+
+            for (i = 0; i < sURLVariables.length; i++) {
+                var arr = []; //new storage
+                sURLVariables[i] = sURLVariables[i].split('='); //split by spaces
+                arr.push(sURLVariables[i].shift()); //add the number
+                arr.push(sURLVariables[i].join('='));
+                sParameterName = arr;
+
+                if (sParameterName[0] === sParam) {
+                    return sParameterName[1] === undefined ? true : sParameterName[1];
+                }
+            }
+        };
+        var Model_end = 0;
+        var Model_start = 0;
+        var Model_youtubeId = "";
+        try {
+            var url_ytid = getUrlParameter("ytid");
+            if (url_ytid != null && url_ytid != "") {
+                $("#player iframe").attr("src", "https://www.youtube.com/embed/" + url_ytid);
+            }
+        } catch (e) {
+
+        }
+        try {
+            var url_start = getUrlParameter("start");
+            if (url_start != null && url_start != "" && parseInt(url_start) > -1) {
+                Model_start = parseInt(url_start);
+            }
+        } catch (e) {
+
+        }
+        try {
+            var url_end = getUrlParameter("end");
+            if (url_end != null && url_end != "" && parseInt(url_end) > -1) {
+                Model_end = parseInt(url_end);
+            }
+        } catch (e) {
+
+        }
+        const player = new Plyr('#player', {
+            autoplay: true,
+            youtube: {
+                autoplay: true
+            },
+            muted: false,
+            volume: 1,
+			invertTime:false,
+            fullscreen: { enabled: true },
+			previewThumbnails:{enabled: false},
+            controls: ['rewind', 'play', 'fast-forward', 'progress', 'current-time', 'settings', 'fullscreen']
+        });
+
+        try {
+
+            player.on("ready", function () {
+                player.currentTime = Model_start;
+                player.muted = false;
+                player.volume = 1;
+				try{
+					$("button[data-plyr='rewind']").html("<img src='https://edurev.gumlet.io/cdn_lib/v10/lib/img/content/backward.png' style='max-width:26px;' />");
+					$("button[data-plyr='fast-forward']").html("<img src='https://edurev.gumlet.io/cdn_lib/v10/lib/img/content/forward.png' style='max-width:26px;' />");
+					$("button[data-plyr='fast-forward'], button[data-plyr='rewind']").css({
+                                                'width': '32px',
+                                                'height': '32px',
+                                                'padding': '0px',
+                                                'padding-top': '3px'
+                                            });
+				}
+				catch(e)
+				{
+				}
+            });
+        } catch (e) {
+
+        }
+        $('#player').on('enterfullscreen', function (event) {
+            try {
+                Android.fullScreen();
+                resizePlayerScreen();
+            }
+            catch (e) {
+
+            }
+        });
+        $('#player').on('exitfullscreen', function (event) {
+            try {
+                Android.exitScreen();
+                resizePlayerScreen();
+            }
+            catch (e) {
+
+            }
+        });
+        setInterval(function () {
+            try {
+                var popupShown = Android.CurrentTime(player.currentTime);
+                if (popupShown == 1) {
+                    player.pause();
+                }
+                else if (popupShown == 2) {
+                    player.play();
+                }
+            }
+            catch (e) {
+
+            }
+        }, 500);
+        setInterval(function () {
+            var isBackPressed = Android.isBackPressed();
+            if (isBackPressed) {
+                try {
+                    player.fullscreen.exit();
+                }
+                catch (e) {
+
+                }
+            }
+            else {
+            }
+        }, 500);
+        setInterval(function () {
+            try {
+                var seekTimeSeconds = Android.SeekTime();
+                if (seekTimeSeconds > -1) {
+                    player.currentTime = seekTimeSeconds;
+                    player.muted = false;
+                    player.volume = 1;
+                }
+            }
+            catch (e) {
+
+            }
+        }, 500);
+
+        $(document).ready(function () {
+
+
+            var stopVideoChecker = setInterval(function () {
+                try {
+                    if (typeof (player) != 'undefined') {
+                        if (Model_end != "0" && Model_end != "") {
+                            if (player.currentTime > parseFloat(Model_end)) {
+                                player.stop();
+                            }
+                        }
+                    }
+                } catch (e) { }
+            }, 100);
+
+        });
+        setTimeout(function () {
+            Object.assign(document.querySelector('.plyr__video-wrapper iframe').style, {
+                width: '400%',
+                height: '400%',
+                transform: 'scale(0.25)',
+                transformOrigin: 'top left'
+            });
+        }, 2000);
+		setInterval(function () {
+            try {
+                var reachedEnd = Android.ReachedEnd();
+                if (reachedEnd == 1) {
+                    player.pause();
+                }
+            }
+            catch (e) {
+
+            }
+        }, 500);
+    </script>
+</body>
+</html>
